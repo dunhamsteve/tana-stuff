@@ -47,21 +47,16 @@ for (let node of data.docs) {
     }
     if (node.children) {
         svp.push([node.id,'children',node.children])
-    }
-    if (!node.props._metaNodeId) continue
-    let mnode = nodes[node.props._metaNodeId]
-    if (!mnode) { console.error(`metanode ${node.props._metaNodeId} mia on ${node.id}`); continue}
-    if (!mnode.children) continue
-    // can probably unflatten when we have better queries.
-    for (let id of mnode.children) {
-        let n = nodes[id]
-        if (!n) { console.error(`meta ${id} missing on ${node.id}`); continue }
-        if (n.props._docType !== 'tuple') { console.error(`meta ${id} is not tuple on ${node.id}`); continue }
-        if (!n.children) { console.error(`empty tuple on ${id}`); continue}
-        // decode tuple
-        let field = n.children[0]
-        let vkeys = n.children.slice(1)
-        vkeys.forEach(v => svp.push([node.id, field, v]))
+        for (let id of node.children) {
+            let n = nodes[id]
+            if (!n) { console.error(`child ${id} missing on ${node.id}`); continue }
+            if (n.props._docType !== 'tuple') { continue }
+            if (!n.children) { console.error(`empty tuple on ${id}`); continue}
+            // decode tuple
+            let field = n.children[0]
+            let vkeys = n.children.slice(1)
+            vkeys.forEach(v => svp.push([node.id, field, v]))
+        }
     }
 }
 
@@ -85,6 +80,7 @@ function check(v: Value, needle: Value, vars: MVars): MVars {
 }
 // taking some liberties.
 function *unify(pat: Pattern, vars: Vars) {
+    // this could be faster - we're doing a table scan.
     for (let [s,v,p] of svp) {
         let tmp: MVars = vars
         tmp = check(s,pat[0],tmp)
@@ -106,7 +102,7 @@ function *run_query(pats: Pattern[], vars: Vars): Generator<Vars, void, unknown>
 }
 
 function parse_pat(x: string): Pattern {
-    let pts = x.trim().split(' ').map(p => p == '-' ? null : p)
+    let pts = x.trim().split(' ').map(p => p == '-' || p == '_' ? null : p)
     return [pts[0],pts[1], pts[2]]
 }
 
@@ -116,7 +112,11 @@ function parse_query(line: string) {
 
 const readline = require('readline');
 async function repl() {
-    console.log('REPL\nexamples:\n    $id name field-definition . $e - $id . $e name $name\n\n')
+    console.log('REPL\nexamples:\n');
+    console.log('    $id name field-definition . $e - $id . $e name $name');
+    console.log('    - SYS_A13 $e . $e name $name');
+    console.log('    $meta SYS_A13 SYS_T01 . $e _metaNodeId $meta . $e name $name');
+    console.log();
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
@@ -141,9 +141,14 @@ async function repl() {
 }
 
 async function main() {
-    let q = parse_query('$id - SYS_T02 . $id name $name')
+    let q = parse_query('$id _metaNodeId $meta . $meta - SYS_T02 . $id name $name')
     for (let sol of run_query(q, {})) {
-        console.log('field', sol.$id, sol.$name)
+        console.log(`Field ${sol.$name} (${sol.$id})`);
+        let q2 = parse_query(`${sol.$id} $k $v . $k name $key . $v name $value`)
+        for (let sol of run_query(q2, {})) {
+            console.log(`  - ${sol.$key} (${sol.$k}): ${sol.$value} (${sol.$v})`)
+        }
+        console.log();
     }
     console.log();
     await repl();
