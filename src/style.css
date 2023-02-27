@@ -51,10 +51,74 @@ div.main {
     /* display: flex; */
     border: solid 1px green;
 }
-.docType {
-    font-size: 0.5rem;
+.doctype {
+    font-size: smaller;
     color: green;
 }
 .tuple {
     display:flex;
+    border-top: solid 1px grey;
+    border-bottom: solid 1px grey;
+    margin-bottom: -1px;  /* border hack */
+}
+.tupleHead {
+    width: 10rem;
+    overflow: hidden;
+}
+#app {
+    position:absolute;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+}
+.top {
+    display: flex;
+    height: 100%;
+    /* flex-direction: column; */
+}
+.sidebar {
+    width: 17rem;
+    background: lavender;
+    border-right: solid 1px #aaa;
+    padding: 10px;
+    height: 100%;
+    overflow-y: auto;
+    flex-shrink:0;
+}
+.page {
+    padding: 10px;
+}
+.heading {
+    font-size: 2rem;
+}
+.description {
+    color: #555;
+}
+body {
+    margin: 0;
+    font-family: sans-serif;
+}
+.shead {
+    color: grey;
+}
+.slug {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: flex;
+}
+.sideChildren {
+    margin-left: 15px;
+}
+.tag {
+    color: darkred;
+    margin-left: 1ex;
+
+    
+}
+.codeblock {
+    margin-left: 3em;
+    padding: 5px;
+    border: solid 1px darkorange;
 }
