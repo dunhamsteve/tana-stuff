@@ -41,23 +41,22 @@ async function main() {
         console.log(fn, data.docs.length)
         let outfn = `backup/${wsid}_${data.lastTxid}.json`
         await writeFile(outfn, JSON.stringify(data, null, '  '))
-        let store = new DataStore(data)
-        // Here is the shape of it. There is no differentiation
-        // that I can find between a link and an uploaded file.
-        // So we'll use heuristics on the url.
-        // And I guess for now, node id for filename?
+        if (wsid === 'drT7__5gJr') {
+            let store = new DataStore(data)
+            // Here is the shape of it. There is no differentiation
+            // that I can find between a link and an uploaded file.
+            // So we'll use heuristics on the url.
+            // And I guess for now, node id for filename?
 
-        // Queries are expensive without an index...
-        let results = store.query(`
+            // Queries are expensive without an index...
+            let results = store.query(`
     $meta SYS_T15 $v .
     $node _metaNodeId $meta .
     $v name $url .
     $node name $name
     `)
-        if (wsid === 'drT7__5gJr') {
             // write latest to dist
             await writeFile('dist/out.json', JSON.stringify(data, null, '  '))
-
             // get files
             for (let sol of results) {
                 // console.log(sol)

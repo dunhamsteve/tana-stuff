@@ -33,6 +33,10 @@ interface Node {
         _metaNodeId: string
         _docType?: DocType
         _view?: ViewType
+        _done?: false | number
+        _editMode?: boolean
+        _ownerId?: string
+        _sourceId?: string
     }
     children?: string[]
     _underConstruction?: true
@@ -157,10 +161,29 @@ function Tuple(props: NodeProp) {
 
 function TextBlock({ node }: NodeProp) {
     if (!node) return null
+    let meta = app.props(node.props._metaNodeId)
+    
     let raw = node.props.name || ''
-    let div = document.createElement('span')
-
+    let div
+    let href : string | undefined
+    if (meta.SYS_T15) {
+        let fileNode = getNode(meta.SYS_T15[0])
+        href = fileNode.props.name
+        div = document.createElement('a')
+        console.log('T15', fileNode, href)
+        if (href) {
+            div.setAttribute('href',href)
+            div.setAttribute('target','_new')
+            div.className = 'fileLink'
+        }
+    } else {
+        div = document.createElement('span')
+    }
+    
+    div.innerHTML = raw
+    console.log('pre',div)
     let populate = (div: HTMLElement | null) => {
+        console.log('populate',div)
         if (div) {
             div.innerHTML = raw
             // fix up links
@@ -175,7 +198,13 @@ function TextBlock({ node }: NodeProp) {
         }
     }
     let title = node.id + ' ' + (node.props._docType || '')
-    return h('span', { ref: populate, title }, div)
+    if (href) {
+        // Probably need a local link?
+        return h('a', { ref: populate, title, href, target: '_blank', class: 'fileLink'})
+    } else {
+        return h('span', { ref: populate, title })
+    }
+    
 }
 
 function NodeLine(props: NodeProp & { toggle: Signal<boolean> }) {
