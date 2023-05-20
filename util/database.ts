@@ -22,9 +22,15 @@ type Triple = [string, string, Value]
 type Pattern = [Ring, Ring, Ring]
 
 type Vars = Record<string, Value>
-type MVars = Vars | undefined
+type OptVars = Vars | undefined
 
-function check(v: Value, needle: Value, vars: MVars): MVars {
+// match a value 
+// - if needle is a variable "$x" then add to a fresh copy of vars
+// - if needle is null, match all
+// - if match fails return undefined
+// TODO - since we're a generator, we could prealloc all vars in an array and just mutate in place
+function check(v: Value, needle: Value, vars: OptVars): OptVars {
+    // We chain S,V,P together before inspecting the result
     if (!vars) return vars
     if (needle == null) return vars
     if (typeof needle == 'string' && needle.startsWith('$')) {
@@ -32,7 +38,6 @@ function check(v: Value, needle: Value, vars: MVars): MVars {
         else return { ...vars, [needle]: v }
     }
     if (v == needle) { return vars }
-
 }
 
 function parse_pat(x: string): Pattern {
@@ -44,6 +49,30 @@ function parse_query(line: string) {
     return line.split('.').map(parse_pat)
 }
 
+function literal(v: Value, vars: Vars): string | undefined{
+    v = vars[v as any] || v
+    if (typeof v == 'string' && !v.startsWith('$')) {
+        return v
+    }
+}
+
+function *scan(tt: Triple[], v: string, col: 0|1) {
+    // invariant f(i-1) false, f(j) true
+    let i =0
+    let j = tt.length
+    while (i < j) {
+        let h = (i + j) >> 1
+        if (tt[i][col] >= v) { 
+            j = h
+        } else {
+            i = h + 1
+        }
+    }
+    for (;tt[j][col] == v; j++) {
+        yield tt[j]
+    }
+}
+
 /**
  * Turns tana store into triple store, flattening a little.
  * Provides crude datalog-like queries
@@ -51,6 +80,7 @@ function parse_query(line: string) {
 export
 class DataStore {
     svp: Triple[] = []
+    vsp: Triple[]
     constructor(data: Database) {
         // build lookup table
         let nodes: Record<string, Node> = {}
@@ -85,13 +115,28 @@ class DataStore {
             }
         }
         this.svp.sort()
+        this.vsp = this.svp.slice()
+        this.vsp.sort()
         console.log(this.svp.length, 'triples')
     }
     // taking some liberties.
     *unify(pat: Pattern, vars: Vars) {
         // this could be faster - we're doing a table scan.
+        let range : Iterable<Triple>
+        let key : string | undefined
+        if (key = literal(pat[0], vars)) {
+            // never hit this branch in the backup use-case?
+            // ahh, because we don't check vars
+            console.log('sub', key)
+            range = scan(this.svp, key, 0)
+        } else if (key = literal(pat[1], vars)) {
+            console.log('pred', key)
+            range = scan(this.vsp, key, 1)
+        } else {
+            range = this.svp
+        }
         for (let [s, v, p] of this.svp) {
-            let tmp: MVars = vars
+            let tmp: OptVars = vars
             tmp = check(s, pat[0], tmp)
             tmp = check(v, pat[1], tmp)
             tmp = check(p, pat[2], tmp)
