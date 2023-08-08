@@ -5,8 +5,7 @@
   "main": "main.jsx",
   "scripts": {
     "dev": "node scripts/dev.js& live-server dist",
-    "build": "node scripts/build.js",
-    "serve": "live-server dist"
+    "serve": "node scripts/serve.js"
   },
   "author": "",
   "license": "ISC",

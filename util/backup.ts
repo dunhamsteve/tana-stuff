@@ -11,7 +11,6 @@ function assert(thing: any): asserts thing is string {
         throw new Error(`expected string got ${thing}`)
 }
 
-
 async function* getFiles(dir: string): AsyncGenerator<string> {
     const dirents = await readdir(dir, { withFileTypes: true });
     for (const dirent of dirents) {
@@ -25,9 +24,12 @@ async function* getFiles(dir: string): AsyncGenerator<string> {
 }
 
 async function main() {
-    // These are reverenced from the LevelDB
+    // These are referenced from the LevelDB
     // I have code to read chrome's LevelDB, but haven't
     // figured out the external blob references yet.
+    // I'm symlinking this into the current directory, but on mac, it is found at:
+    // 
+    // ~/Library/Application Support/Google/Chrome/Default/IndexedDB/https_app.tana.inc_0.indexeddb.blob
     let dn = "https_app.tana.inc_0.indexeddb.blob"
     for await (let fn of getFiles(dn)) {
         console.log(fn)
@@ -36,11 +38,10 @@ async function main() {
         console.log(fn, data.currentWorkspaceId, data.lastTxid)
         let wsid = data.docs[0].id
         console.log('wsid', wsid)
-
-        // console.log(Object.keys(data))
         console.log(fn, data.docs.length)
         let outfn = `backup/${wsid}_${data.lastTxid}.json`
         await writeFile(outfn, JSON.stringify(data, null, '  '))
+        // Only backup files from my main store.
         if (wsid === 'drT7__5gJr') {
             let store = new DataStore(data)
             // Here is the shape of it. There is no differentiation
@@ -56,7 +57,7 @@ async function main() {
     $node name $name
     `)
             // write latest to dist
-            await writeFile('dist/out.json', JSON.stringify(data, null, '  '))
+            await writeFile('www/out.json', JSON.stringify(data, null, '  '))
             // get files
             for (let sol of results) {
                 // console.log(sol)

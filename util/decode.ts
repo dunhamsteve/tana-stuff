@@ -1,7 +1,5 @@
-import { readdir, readFile } from 'fs/promises'
-import { resolve } from 'path'
+// Decodes v8 internal serialization format
 
-// Decode v8 data
 // third_party/blink/renderer/modules/indexeddb/idb_value_wrapping.h
 // SerializedScriptValue
 // https://chromium.googlesource.com/chromium/blink/+/master/Source/bindings/core/v8/SerializedScriptValue.cpp
@@ -10,7 +8,7 @@ import { resolve } from 'path'
 
 
 export
-    function decode_value(data: Uint8Array, p: number) {
+function decode_value(data: Uint8Array, p: number) {
     let ostack: any[] = []
     let stack: any[] = []
     let rtable: any[] = []

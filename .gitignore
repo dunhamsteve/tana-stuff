@@ -1,4 +1,4 @@
 node_modules
-www
-backup
+www/main.*
+www/out.json
 data

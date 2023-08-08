@@ -14,7 +14,7 @@ interface Node {
     meta: Record<string, string>
 }
 
-interface Database { docs: Node[] }
+export interface Database { docs: Node[] }
 
 type Ring = string | null
 type Value = string | number | string[] | null
@@ -125,12 +125,8 @@ class DataStore {
         let range : Iterable<Triple>
         let key : string | undefined
         if (key = literal(pat[0], vars)) {
-            // never hit this branch in the backup use-case?
-            // ahh, because we don't check vars
-            console.log('sub', key)
             range = scan(this.svp, key, 0)
         } else if (key = literal(pat[1], vars)) {
-            console.log('pred', key)
             range = scan(this.vsp, key, 1)
         } else {
             range = this.svp
