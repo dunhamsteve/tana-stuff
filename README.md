@@ -15,3 +15,6 @@ I run these with `ts-node`:
 # App
 
 There is a wee web-app that renders `www/out.json`. I'm running it with `node scripts/server.js`.
+
+
+Also, `tanamath.js` does not work - I need reliable ways to stuff the source back in when the row switches to edit mode.
