@@ -8,8 +8,10 @@ This repository contains miscellaneous Tana-related stuff.  It's a bit of a mess
 I run these with `ts-node`:
 
 - `util/backup.ts` is my daily bacup script. It extracts the tana json data from chrome's indexed db, saves it locally, and downloads any attachments.
+- `util/backup2.ts` Backs up tana data from the firefox install
 - `util/tana_query_repl.ts` runs a datalog query against tana.
 - `util/decode.ts` is a decoder for v8's internal serialization format, used for pulling data out of indexedDB.
+- `util/decode_ffox.ts` is a decoder for the firefox indexed db blobs (snappy stream plus a serialization format)
 - `util/database.ts` is a DataStore class that loads tana json and executes datalog queries, used to find attachments to download.
 
 # App
