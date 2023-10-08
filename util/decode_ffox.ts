@@ -2,6 +2,7 @@
 // ./2916616319NtoatoeB.files/8
 
 // StructuredClone
+let ID=0
 
 "snappy framed file";
 
@@ -13,7 +14,7 @@ let home = homedir();
 // probably need to glob this to make it usuable in general
 let dn = `${home}/Library/Application Support/Firefox/Profiles/g7k1cmzj.default-release/storage/default/https+++app.tana.inc/idb/2916616319NtoatoeB.files`;
 
-const td = new TextDecoder("utf8");
+const td = new TextDecoder("iso-8859-1");
 
 // js/src/vm/StructuredClone.cpp
 
@@ -54,6 +55,7 @@ function decode(buf: Buffer) {
         let value;
         if (utf8) {
           value = td.decode(buf.subarray(p, p + len));
+          if (value.includes('sunchoke')) writeFileSync(`raw${ID++}.bin`, buf.subarray(p,p+len))
           p += len;
         } else {
           value = "";
@@ -61,6 +63,7 @@ function decode(buf: Buffer) {
             value += String.fromCharCode(buf.readUint16LE(p));
             p += 2;
           }
+          if (value.includes('sunchoke')) writeFileSync(`raw${ID++}.bin`, buf.subarray(p- value.length*2,p))
         }
         while (p % 8) p++;
         return value;
@@ -110,6 +113,7 @@ function decode(buf: Buffer) {
 }
 
 export function decode_file(data: Buffer) {
+  // This is a snappy decoder, followed by a code to `decode` at the end.
   let out = Buffer.alloc(1024);
   let p = 0;
   let q = 0;
